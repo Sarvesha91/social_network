@@ -1,4 +1,19 @@
+type User = record {
+    user_id: principal;
+    username: text;
+    full_name: opt text;
+    email: opt text;
+    bio: opt text;
+    profile_pic: opt text;
+    location: opt text;
+    website: opt text;
+};
+
 service : {
-    "greet": (text) -> (text) query;
+    "create_user": (text, opt text, opt text, opt text, opt text, opt text, opt text) -> (text);
+    "get_user": (principal) -> (opt User) query;
+    "update_user": (opt text, opt text, opt text, opt text, opt text, opt text) -> (text);
+    "delete_user": () -> (text);
+    "get_all_users": () -> (vec User) query;
 }
 
