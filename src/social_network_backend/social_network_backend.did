@@ -7,13 +7,118 @@ type User = record {
     profile_pic: opt text;
     location: opt text;
     website: opt text;
+    is_admin: bool;
+    created_at: nat64;
+    last_active: nat64;
+};
+
+type AdminStats = record {
+    total_users: nat64;
+    total_admins: nat64;
+    recent_registrations: nat64;
+};
+
+type Post = record {
+    post_id: nat64;
+    author_id: principal;
+    content: text;
+    created_at: nat64;
+    updated_at: opt nat64;
+    likes: nat64;
+    comments_count: nat64;
+    shares_count: nat64;
+    hashtags: vec text;
+    mentions: vec principal;
+    media_urls: vec text;
+    is_deleted: bool;
+};
+
+type Comment = record {
+    comment_id: nat64;
+    post_id: nat64;
+    author_id: principal;
+    content: text;
+    created_at: nat64;
+    updated_at: opt nat64;
+    likes: nat64;
+    is_deleted: bool;
+};
+
+type Follow = record {
+    follower_id: principal;
+    following_id: principal;
+    created_at: nat64;
+};
+
+type PostStats = record {
+    total_posts: nat64;
+    recent_posts: nat64;
+    total_likes: nat64;
 };
 
 service : {
+    // User functions
     "create_user": (text, opt text, opt text, opt text, opt text, opt text, opt text) -> (text);
     "get_user": (principal) -> (opt User) query;
     "update_user": (opt text, opt text, opt text, opt text, opt text, opt text) -> (text);
     "delete_user": () -> (text);
     "get_all_users": () -> (vec User) query;
+    "search_users": (text) -> (vec User) query;
+
+    // Debug functions
+    "debug_user_count": () -> (nat64) query;
+    "debug_user_exists": (principal) -> (bool) query;
+
+    // Post functions
+    "create_post": (text, vec text, vec text) -> (variant { Ok: nat64; Err: text });
+    "get_post": (nat64) -> (opt Post) query;
+    "get_all_posts": () -> (vec Post) query;
+    "get_user_posts": (principal) -> (vec Post) query;
+    "get_trending_posts": () -> (vec Post) query;
+    "search_posts": (text) -> (vec Post) query;
+    "get_posts_by_hashtag": (text) -> (vec Post) query;
+    "update_post": (nat64, text) -> (text);
+    "delete_post": (nat64) -> (text);
+    "like_post": (nat64) -> (text);
+    "unlike_post": (nat64) -> (text);
+    "has_user_liked_post": (nat64) -> (bool) query;
+    "get_user_liked_posts": () -> (vec nat64) query;
+    "share_post": (nat64) -> (text);
+
+    // Comment functions
+    "create_comment": (nat64, text) -> (variant { Ok: nat64; Err: text });
+    "get_post_comments": (nat64) -> (vec Comment) query;
+    "update_comment": (nat64, text) -> (text);
+    "delete_comment": (nat64) -> (text);
+    "like_comment": (nat64) -> (text);
+    "unlike_comment": (nat64) -> (text);
+
+    // Follow functions
+    "follow_user": (principal) -> (text);
+    "unfollow_user": (principal) -> (text);
+    "get_followers": (principal) -> (vec principal) query;
+    "get_following": (principal) -> (vec principal) query;
+    "is_following": (principal) -> (bool) query;
+    "get_user_feed": () -> (vec Post) query;
+
+    // Admin check functions
+    "is_caller_admin": () -> (bool) query;
+
+    // Admin-only user management functions
+    "admin_delete_user": (principal) -> (text);
+    "admin_promote_user": (principal) -> (text);
+    "admin_demote_user": (principal) -> (text);
+
+    // Admin-only post management functions
+    "admin_delete_post": (nat64) -> (text);
+    "admin_get_all_posts": () -> (variant { Ok: vec Post; Err: text }) query;
+
+    // Admin-only data access functions
+    "admin_get_stats": () -> (variant { Ok: AdminStats; Err: text }) query;
+    "admin_get_post_stats": () -> (variant { Ok: PostStats; Err: text }) query;
+    "admin_get_all_users_detailed": () -> (variant { Ok: vec User; Err: text }) query;
+    "admin_search_users": (text) -> (variant { Ok: vec User; Err: text }) query;
+    "admin_get_recent_users": (nat64) -> (variant { Ok: vec User; Err: text }) query;
+    "admin_create_user_with_principal": (principal, text, opt text, opt text, opt text, opt text, opt text, opt text) -> (text);
 }
 

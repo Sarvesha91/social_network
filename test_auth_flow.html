@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Authentication Flow</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { margin: 5px; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Authentication Flow Test</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Existing User Login</h2>
+        <p>Principal: 2vxsx-fae (should find profile and go to main app)</p>
+        <button onclick="testExistingUser()">Test Existing User</button>
+        <div id="existing-user-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: New User Signup</h2>
+        <p>Principal: new-user-principal (should show registration form)</p>
+        <button onclick="testNewUser()">Test New User</button>
+        <div id="new-user-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: All Users</h2>
+        <button onclick="testGetAllUsers()">Get All Users</button>
+        <div id="all-users-result"></div>
+    </div>
+
+    <script>
+        // Simulate the authentication logic from App.jsx
+        
+        function simulateAuthCheck(principal, isSigningUp) {
+            console.log(`PROFILE_CHECK: Checking profile for principal: ${principal}`);
+            console.log(`PROFILE_CHECK: isSigningUp: ${isSigningUp}`);
+            
+            // Simulate backend call
+            const existingUsers = [
+                { user_id: '2vxsx-fae', username: 'Sarv29', full_name: 'Sarvesha' }
+            ];
+            
+            const profile = existingUsers.find(user => user.user_id === principal);
+            
+            const hasProfile = profile !== undefined;
+            console.log(`PROFILE_CHECK: hasProfile: ${hasProfile}`);
+            
+            if (hasProfile) {
+                console.log('PROFILE_CHECK: Profile found, setting up main app');
+                if (isSigningUp) {
+                    return {
+                        action: 'show_main_app',
+                        message: 'Welcome back! You already have an account.',
+                        profile: profile
+                    };
+                } else {
+                    return {
+                        action: 'show_main_app',
+                        message: 'Login successful',
+                        profile: profile
+                    };
+                }
+            } else {
+                console.log('PROFILE_CHECK: No profile found for this principal');
+                if (isSigningUp) {
+                    console.log('PROFILE_CHECK: User clicked signup, showing registration form');
+                    return {
+                        action: 'show_registration',
+                        message: 'Please complete your profile'
+                    };
+                } else {
+                    console.log('PROFILE_CHECK: User clicked login but has no profile');
+                    return {
+                        action: 'show_landing',
+                        message: 'No account found. Please sign up first.'
+                    };
+                }
+            }
+        }
+        
+        function testExistingUser() {
+            const result = simulateAuthCheck('2vxsx-fae', false); // LOGIN
+            document.getElementById('existing-user-result').innerHTML = `
+                <div class="${result.action === 'show_main_app' ? 'success' : 'error'}">
+                    <strong>Action:</strong> ${result.action}<br>
+                    <strong>Message:</strong> ${result.message}<br>
+                    <strong>Profile:</strong> ${result.profile ? JSON.stringify(result.profile) : 'None'}
+                </div>
+            `;
+        }
+        
+        function testNewUser() {
+            const result = simulateAuthCheck('new-user-principal', true); // SIGNUP
+            document.getElementById('new-user-result').innerHTML = `
+                <div class="${result.action === 'show_registration' ? 'success' : 'error'}">
+                    <strong>Action:</strong> ${result.action}<br>
+                    <strong>Message:</strong> ${result.message}<br>
+                    <strong>Profile:</strong> ${result.profile ? JSON.stringify(result.profile) : 'None'}
+                </div>
+            `;
+        }
+        
+        function testGetAllUsers() {
+            const allUsers = [
+                { user_id: '2vxsx-fae', username: 'Sarv29', full_name: 'Sarvesha' }
+            ];
+            document.getElementById('all-users-result').innerHTML = `
+                <div class="info">
+                    <strong>All Users:</strong><br>
+                    <pre>${JSON.stringify(allUsers, null, 2)}</pre>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
