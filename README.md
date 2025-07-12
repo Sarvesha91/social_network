@@ -8,8 +8,6 @@
 
 ## 🚀 Live Demo
 
-**[Try Social Net Live →](http://localhost:3000)** *(Replace with your deployed URL)*
-
 ![Social Net Landing Page](assets/landing-page.png)
 *Modern, responsive landing page with animated features*
 
@@ -189,9 +187,6 @@ We welcome contributions! Please follow these steps:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
@@ -201,9 +196,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 
-- **Developer**: [Sarvesha Sinha]
-- **Email**: your.email@example.com
-- **Twitter**: [@yourusername](https://twitter.com/yourusername)
+- **Developer**: Sarvesha Sinha
+- **Email**: sarveshasinha@gmail.com
 - **LinkedIn**: [Your LinkedIn](https://linkedin.com/in/yourusername)
 
 ---
