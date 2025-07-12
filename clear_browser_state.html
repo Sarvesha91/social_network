@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Browser State - Social Net</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        button {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #c82333;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Social Net - Browser State Reset</h1>
+        
+        <div class="info">
+            <strong>Problem:</strong> Your browser got stuck after clicking followers button.<br>
+            <strong>Solution:</strong> Clear all browser storage and authentication state.
+        </div>
+        
+        <p>This will clear:</p>
+        <ul style="text-align: left;">
+            <li>Internet Identity authentication data</li>
+            <li>All localStorage data</li>
+            <li>All sessionStorage data</li>
+            <li>All cookies for localhost</li>
+            <li>IndexedDB data</li>
+            <li>Cache storage</li>
+        </ul>
+        
+        <button onclick="clearAllBrowserState()">🗑️ Clear All Browser Data</button>
+        <button onclick="window.location.href='http://localhost:3000/'">🌐 Go to Social Net</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function clearAllBrowserState() {
+            try {
+                // Clear localStorage
+                localStorage.clear();
+                
+                // Clear sessionStorage
+                sessionStorage.clear();
+                
+                // Clear cookies
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+                
+                // Clear IndexedDB
+                if ('indexedDB' in window) {
+                    const databases = await indexedDB.databases();
+                    await Promise.all(
+                        databases.map(db => {
+                            return new Promise((resolve, reject) => {
+                                const deleteReq = indexedDB.deleteDatabase(db.name);
+                                deleteReq.onsuccess = () => resolve();
+                                deleteReq.onerror = () => reject(deleteReq.error);
+                            });
+                        })
+                    );
+                }
+                
+                // Clear cache storage
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(
+                        cacheNames.map(cacheName => caches.delete(cacheName))
+                    );
+                }
+                
+                document.getElementById('result').innerHTML = 
+                    '<div class="success">✅ All browser data cleared successfully!<br>Now click "Go to Social Net" to test.</div>';
+                    
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    '<div style="color: red;">❌ Error: ' + error.message + '</div>';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -14,7 +14,7 @@ function NewsFeed({ userInterests = [] }) {
         summary: "Web3 social platforms see 300% growth in user adoption",
         category: "Technology",
         time: "2 hours ago",
-        image: "https://via.placeholder.com/150x100/667eea/ffffff?text=Tech+News"
+        image: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=300&h=200&fit=crop&crop=center"
       },
       {
         id: 2,
@@ -22,7 +22,7 @@ function NewsFeed({ userInterests = [] }) {
         summary: "ICP's authentication system hits major milestone",
         category: "Blockchain",
         time: "4 hours ago",
-        image: "https://via.placeholder.com/150x100/764ba2/ffffff?text=Blockchain"
+        image: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=300&h=200&fit=crop&crop=center"
       },
       {
         id: 3,
@@ -30,7 +30,7 @@ function NewsFeed({ userInterests = [] }) {
         summary: "Users demand more control over their data",
         category: "Privacy",
         time: "6 hours ago",
-        image: "https://via.placeholder.com/150x100/f093fb/ffffff?text=Privacy"
+        image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=300&h=200&fit=crop&crop=center"
       }
     ],
     technology: [
@@ -40,7 +40,7 @@ function NewsFeed({ userInterests = [] }) {
         summary: "Machine learning transforms user experience",
         category: "AI",
         time: "1 hour ago",
-        image: "https://via.placeholder.com/150x100/667eea/ffffff?text=AI+News"
+        image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=300&h=200&fit=crop&crop=center"
       },
       {
         id: 5,
@@ -48,7 +48,7 @@ function NewsFeed({ userInterests = [] }) {
         summary: "New frameworks make dApp development easier",
         category: "Development",
         time: "3 hours ago",
-        image: "https://via.placeholder.com/150x100/764ba2/ffffff?text=Dev+Tools"
+        image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=300&h=200&fit=crop&crop=center"
       }
     ],
     blockchain: [
@@ -58,7 +58,7 @@ function NewsFeed({ userInterests = [] }) {
         summary: "Enhanced performance and new features",
         category: "ICP",
         time: "30 minutes ago",
-        image: "https://via.placeholder.com/150x100/667eea/ffffff?text=ICP+Update"
+        image: "https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=300&h=200&fit=crop&crop=center"
       },
       {
         id: 7,
@@ -66,16 +66,48 @@ function NewsFeed({ userInterests = [] }) {
         summary: "New possibilities for creator monetization",
         category: "DeFi",
         time: "2 hours ago",
-        image: "https://via.placeholder.com/150x100/f093fb/ffffff?text=DeFi"
+        image: "https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=300&h=200&fit=crop&crop=center"
       }
     ]
   };
 
   const categories = [
-    { id: 'trending', name: '🔥 Trending', icon: '📈' },
-    { id: 'technology', name: '💻 Technology', icon: '⚡' },
-    { id: 'blockchain', name: '⛓️ Blockchain', icon: '🚀' },
-    { id: 'social', name: '👥 Social', icon: '💬' }
+    {
+      id: 'trending',
+      name: 'Trending',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+          <path d="M13.5 2c-5.621 0-10.211 4.443-10.475 10H0l3.5 4 3.5-4H4.525c.238-4.358 3.892-7.818 8.475-7.818 4.687 0 8.5 3.813 8.5 8.5 0 4.687-3.813 8.5-8.5 8.5-2.975 0-5.628-1.534-7.158-4.086l-1.558 1.558C6.482 20.888 9.69 22.5 13.5 22.5c5.799 0 10.5-4.701 10.5-10.5S19.299 2 13.5 2z" />
+        </svg>
+      )
+    },
+    {
+      id: 'technology',
+      name: 'Technology',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+          <path d="M20 3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h3l-1 1v2h12v-2l-1-1h3c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 13H4V5h16v11z" />
+        </svg>
+      )
+    },
+    {
+      id: 'blockchain',
+      name: 'Blockchain',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+          <path d="M6 2l3 3-3 3-3-3 3-3zm6 6l3 3-3 3-3-3 3-3zm6-6l3 3-3 3-3-3 3-3zM6 14l3 3-3 3-3-3 3-3zm12 0l3 3-3 3-3-3 3-3z" />
+        </svg>
+      )
+    },
+    {
+      id: 'social',
+      name: 'Social',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+          <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zM4 18v-4h3v4h2v-7.5c0-.83.67-1.5 1.5-1.5S12 9.67 12 10.5V18h2v-4h3v4h2V10.5c0-1.93-1.57-3.5-3.5-3.5S12 8.57 12 10.5V18H4z" />
+        </svg>
+      )
+    }
   ];
 
   useEffect(() => {
@@ -188,7 +220,27 @@ function NewsFeed({ userInterests = [] }) {
             {news.map(article => (
               <div key={article.id} className="news-item" onClick={() => handleArticleClick(article)}>
                 <div className="news-image">
-                  <img src={article.image} alt={article.title} />
+                  <img
+                    src={article.image}
+                    alt={article.title}
+                    loading="lazy"
+                    onError={(e) => {
+                      // Fallback to a gradient background if image fails
+                      e.target.style.display = 'none';
+                      e.target.parentNode.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                      e.target.parentNode.style.display = 'flex';
+                      e.target.parentNode.style.alignItems = 'center';
+                      e.target.parentNode.style.justifyContent = 'center';
+                      e.target.parentNode.style.color = 'white';
+                      e.target.parentNode.style.fontSize = '2rem';
+                      if (!e.target.parentNode.querySelector('.fallback-icon')) {
+                        const icon = document.createElement('div');
+                        icon.className = 'fallback-icon';
+                        icon.textContent = '📰';
+                        e.target.parentNode.appendChild(icon);
+                      }
+                    }}
+                  />
                   <div className="news-category">{article.category}</div>
                 </div>
                 <div className="news-content-area">

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { social_network_backend } from 'declarations/social_network_backend';
+import EmojiPicker from './EmojiPicker';
 
-function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, backendActor }) {
+function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, onUserSelect, backendActor }) {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -12,6 +13,9 @@ function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, 
   const [newComment, setNewComment] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('all'); // 'all', 'following', 'trending'
+  const [imageModal, setImageModal] = useState({ isOpen: false, images: [], currentIndex: 0 });
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [emojiPickerPostId, setEmojiPickerPostId] = useState(null);
 
   useEffect(() => {
     fetchPosts();
@@ -22,11 +26,15 @@ function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, 
   }, [refreshTrigger, isAuthenticated, currentUser, viewMode]);
 
   useEffect(() => {
-    if (searchQuery.trim()) {
-      handleSearch();
-    } else {
-      fetchPosts();
-    }
+    const timeoutId = setTimeout(() => {
+      if (searchQuery.trim()) {
+        handleSearch();
+      } else {
+        fetchPosts();
+      }
+    }, 300); // Debounce search by 300ms
+
+    return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
   const fetchPosts = async () => {
@@ -112,21 +120,60 @@ function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, 
 
   const fetchUserLikes = async () => {
     try {
+      console.log('🔄 LIKES: Fetching user likes...');
       const actor = backendActor || social_network_backend;
       const likedPostIds = await actor.get_user_liked_posts();
+      console.log('🔄 LIKES: Raw liked post IDs:', likedPostIds);
+
       // Handle BigInt conversion properly
-      const processedIds = likedPostIds.map(id => {
-        if (typeof id === 'bigint') {
-          return Number(id);
-        } else if (typeof id === 'object' && id !== null) {
-          // Handle case where id might be wrapped in an object
-          return Number(id.toString());
+      const processedIds = [];
+
+      // Check if likedPostIds is a typed array (BigUint64Array)
+      if (likedPostIds && typeof likedPostIds === 'object' && likedPostIds.constructor && likedPostIds.constructor.name === 'BigUint64Array') {
+        // Convert BigUint64Array to regular array
+        for (let i = 0; i < likedPostIds.length; i++) {
+          processedIds.push(Number(likedPostIds[i]));
         }
-        return Number(id);
-      });
+      } else if (Array.isArray(likedPostIds)) {
+        // Handle regular array
+        likedPostIds.forEach(id => {
+          if (typeof id === 'bigint') {
+            processedIds.push(Number(id));
+          } else if (typeof id === 'object' && id !== null) {
+            // Handle case where id might be wrapped in an object
+            processedIds.push(Number(id.toString()));
+          } else {
+            processedIds.push(Number(id));
+          }
+        });
+      } else if (likedPostIds) {
+        // Handle single value
+        if (typeof likedPostIds === 'bigint') {
+          processedIds.push(Number(likedPostIds));
+        } else {
+          processedIds.push(Number(likedPostIds));
+        }
+      }
+
+      console.log('🔄 LIKES: Processed liked post IDs:', processedIds);
       setUserLikedPosts(new Set(processedIds));
+
+      // Store in localStorage for persistence
+      localStorage.setItem('userLikedPosts', JSON.stringify(processedIds));
     } catch (err) {
       console.error('Error fetching user likes:', err);
+
+      // Fallback to localStorage if backend fails
+      try {
+        const stored = localStorage.getItem('userLikedPosts');
+        if (stored) {
+          const storedIds = JSON.parse(stored);
+          console.log('🔄 LIKES: Using stored likes:', storedIds);
+          setUserLikedPosts(new Set(storedIds));
+        }
+      } catch (storageErr) {
+        console.error('Error loading stored likes:', storageErr);
+      }
     }
   };
 
@@ -137,47 +184,55 @@ function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, 
     }
 
     const numPostId = Number(postId);
+    console.log('❤️ LIKE: Attempting to like post:', numPostId);
 
     // Immediate optimistic update
-    setUserLikedPosts(prev => new Set([...prev, numPostId]));
+    const newLikedPosts = new Set([...userLikedPosts, numPostId]);
+    setUserLikedPosts(newLikedPosts);
     setPosts(prev => prev.map(post =>
       post.post_id === numPostId
         ? { ...post, likes: post.likes + 1 }
         : post
     ));
 
+    // Update localStorage immediately
+    localStorage.setItem('userLikedPosts', JSON.stringify([...newLikedPosts]));
+
     try {
       const actor = backendActor || social_network_backend;
       const bigIntPostId = BigInt(postId);
       const result = await actor.like_post(bigIntPostId);
+      console.log('❤️ LIKE: Backend result:', result);
 
       if (!result.includes('successfully')) {
         // Revert on failure
-        setUserLikedPosts(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(numPostId);
-          return newSet;
-        });
+        const revertedLikedPosts = new Set(userLikedPosts);
+        revertedLikedPosts.delete(numPostId);
+        setUserLikedPosts(revertedLikedPosts);
         setPosts(prev => prev.map(post =>
           post.post_id === numPostId
             ? { ...post, likes: Math.max(0, post.likes - 1) }
             : post
         ));
+        localStorage.setItem('userLikedPosts', JSON.stringify([...revertedLikedPosts]));
         alert(result);
+      } else {
+        console.log('❤️ LIKE: Successfully liked post:', numPostId);
+        // Refresh user likes to ensure sync
+        setTimeout(() => fetchUserLikes(), 1000);
       }
     } catch (err) {
-      console.error('Error liking post:', err);
+      console.error('❤️ LIKE: Error liking post:', err);
       // Revert on error
-      setUserLikedPosts(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(numPostId);
-        return newSet;
-      });
+      const revertedLikedPosts = new Set(userLikedPosts);
+      revertedLikedPosts.delete(numPostId);
+      setUserLikedPosts(revertedLikedPosts);
       setPosts(prev => prev.map(post =>
         post.post_id === numPostId
           ? { ...post, likes: Math.max(0, post.likes - 1) }
           : post
       ));
+      localStorage.setItem('userLikedPosts', JSON.stringify([...revertedLikedPosts]));
       alert('Failed to like post');
     }
   };
@@ -189,43 +244,54 @@ function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, 
     }
 
     const numPostId = Number(postId);
+    console.log('💔 UNLIKE: Attempting to unlike post:', numPostId);
 
     // Immediate optimistic update
-    setUserLikedPosts(prev => {
-      const newSet = new Set(prev);
-      newSet.delete(numPostId);
-      return newSet;
-    });
+    const newLikedPosts = new Set(userLikedPosts);
+    newLikedPosts.delete(numPostId);
+    setUserLikedPosts(newLikedPosts);
     setPosts(prev => prev.map(post =>
       post.post_id === numPostId
         ? { ...post, likes: Math.max(0, post.likes - 1) }
         : post
     ));
 
+    // Update localStorage immediately
+    localStorage.setItem('userLikedPosts', JSON.stringify([...newLikedPosts]));
+
     try {
       const actor = backendActor || social_network_backend;
       const bigIntPostId = BigInt(postId);
       const result = await actor.unlike_post(bigIntPostId);
+      console.log('💔 UNLIKE: Backend result:', result);
 
       if (!result.includes('successfully')) {
         // Revert on failure
-        setUserLikedPosts(prev => new Set([...prev, numPostId]));
+        const revertedLikedPosts = new Set([...userLikedPosts, numPostId]);
+        setUserLikedPosts(revertedLikedPosts);
         setPosts(prev => prev.map(post =>
           post.post_id === numPostId
             ? { ...post, likes: post.likes + 1 }
             : post
         ));
+        localStorage.setItem('userLikedPosts', JSON.stringify([...revertedLikedPosts]));
         alert(result);
+      } else {
+        console.log('💔 UNLIKE: Successfully unliked post:', numPostId);
+        // Refresh user likes to ensure sync
+        setTimeout(() => fetchUserLikes(), 1000);
       }
     } catch (err) {
-      console.error('Error unliking post:', err);
+      console.error('💔 UNLIKE: Error unliking post:', err);
       // Revert on error
-      setUserLikedPosts(prev => new Set([...prev, numPostId]));
+      const revertedLikedPosts = new Set([...userLikedPosts, numPostId]);
+      setUserLikedPosts(revertedLikedPosts);
       setPosts(prev => prev.map(post =>
         post.post_id === numPostId
           ? { ...post, likes: post.likes + 1 }
           : post
       ));
+      localStorage.setItem('userLikedPosts', JSON.stringify([...revertedLikedPosts]));
       alert('Failed to unlike post');
     }
   };
@@ -310,6 +376,43 @@ function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, 
     }
   };
 
+  const handleEmojiSelect = (emoji) => {
+    if (emojiPickerPostId) {
+      const currentValue = newComment[emojiPickerPostId] || '';
+      setNewComment(prev => ({
+        ...prev,
+        [emojiPickerPostId]: currentValue + emoji
+      }));
+    }
+  };
+
+  // Image modal functions
+  const openImageModal = (images, startIndex = 0) => {
+    setImageModal({
+      isOpen: true,
+      images: images,
+      currentIndex: startIndex
+    });
+  };
+
+  const closeImageModal = () => {
+    setImageModal({ isOpen: false, images: [], currentIndex: 0 });
+  };
+
+  const nextImage = () => {
+    setImageModal(prev => ({
+      ...prev,
+      currentIndex: (prev.currentIndex + 1) % prev.images.length
+    }));
+  };
+
+  const prevImage = () => {
+    setImageModal(prev => ({
+      ...prev,
+      currentIndex: prev.currentIndex === 0 ? prev.images.length - 1 : prev.currentIndex - 1
+    }));
+  };
+
   const formatTimestamp = (timestamp) => {
     const date = new Date(Number(timestamp) / 1_000_000); // Convert nanoseconds to milliseconds
     return date.toLocaleString();
@@ -331,6 +434,13 @@ function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, 
     return canEdit;
   };
 
+  const handleUserClick = (user) => {
+    if (onUserSelect && user) {
+      console.log('👤 POST_LIST: User clicked:', user.username);
+      onUserSelect(user);
+    }
+  };
+
   if (loading) {
     return <div className="loading">Loading posts...</div>;
   }
@@ -343,27 +453,46 @@ function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, 
     <div className="post-list">
       <div className="post-list-header">
         <div className="header-top">
-          <h2>📝 Posts</h2>
+          <h2>
+            <svg className="posts-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 3H21V21H3V3Z" stroke="currentColor" strokeWidth="2" fill="none" />
+              <path d="M7 7H17M7 11H17M7 15H13" stroke="currentColor" strokeWidth="2" />
+            </svg>
+            Posts
+          </h2>
           <div className="view-controls">
             <button
               className={`view-btn ${viewMode === 'all' ? 'active' : ''}`}
               onClick={() => setViewMode('all')}
             >
-              🌍 All
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+                <path d="M2 12H22M12 2C14.5 4.5 16 8.5 16 12S14.5 19.5 12 22C9.5 19.5 8 15.5 8 12S9.5 4.5 12 2Z" stroke="currentColor" strokeWidth="2" />
+              </svg>
+              All
             </button>
             {isAuthenticated && (
               <button
                 className={`view-btn ${viewMode === 'following' ? 'active' : ''}`}
                 onClick={() => setViewMode('following')}
               >
-                👥 Following
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" />
+                  <circle cx="8.5" cy="7" r="4" stroke="currentColor" strokeWidth="2" />
+                  <path d="M20 8V14M23 11H17" stroke="currentColor" strokeWidth="2" />
+                </svg>
+                Following
               </button>
             )}
             <button
               className={`view-btn ${viewMode === 'trending' ? 'active' : ''}`}
               onClick={() => setViewMode('trending')}
             >
-              🔥 Trending
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 17L9 11L13 15L21 7" stroke="currentColor" strokeWidth="2" />
+                <path d="M14 7H21V14" stroke="currentColor" strokeWidth="2" />
+              </svg>
+              Trending
             </button>
           </div>
         </div>
@@ -378,7 +507,10 @@ function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, 
               className="search-input"
             />
             <button onClick={handleSearch} className="search-btn">
-              🔍
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" />
+                <path d="M21 21L16.65 16.65" stroke="currentColor" strokeWidth="2" />
+              </svg>
             </button>
           </div>
           <p className="posts-count">{posts.length} posts found</p>
@@ -411,7 +543,13 @@ function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, 
                     </div>
                     <div className="author-details">
                       <div className="author-name">
-                        <strong>{author ? author.username : 'Unknown User'}</strong>
+                        <strong
+                          className="clickable-username"
+                          onClick={() => author && handleUserClick(author)}
+                          style={{ cursor: author ? 'pointer' : 'default', color: author ? '#667eea' : 'inherit' }}
+                        >
+                          {author ? author.username : 'Unknown User'}
+                        </strong>
                         {author && author.full_name?.[0] && (
                           <span className="full-name">{author.full_name[0]}</span>
                         )}
@@ -431,14 +569,20 @@ function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, 
                         className="menu-btn edit-btn"
                         title="Edit post"
                       >
-                        ✏️
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" strokeWidth="2" />
+                          <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="currentColor" strokeWidth="2" />
+                        </svg>
                       </button>
                       <button
                         onClick={() => handleDelete(post.post_id)}
                         className="menu-btn delete-btn"
                         title="Delete post"
                       >
-                        🗑️
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M3 6H5H21" stroke="currentColor" strokeWidth="2" />
+                          <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" strokeWidth="2" />
+                        </svg>
                       </button>
                     </div>
                   )}
@@ -453,44 +597,108 @@ function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, 
                       ))}
                     </div>
                   )}
-                  {post.media_urls && post.media_urls.length > 0 && (
-                    <div className="media-gallery">
-                      {post.media_urls.map((url, index) => {
-                        // Skip invalid or incomplete URLs
-                        if (!url || url.length < 10 || url === "data:image/png;base64") {
-                          return null;
-                        }
+                  {post.media_urls && post.media_urls.length > 0 && (() => {
+                    // Filter and validate URLs first
+                    const validUrls = post.media_urls.filter(url => {
+                      if (!url || url.length < 10 || url === "data:image/png;base64" || url.trim() === "") {
+                        return false;
+                      }
 
-                        // Check if it's a video
-                        const isVideo = url.includes('video/') || url.includes('.mp4') || url.includes('.webm') || url.includes('.mov');
+                      // Validate URL format
+                      try {
+                        new URL(url);
+                        return true;
+                      } catch {
+                        console.warn('Invalid URL detected:', url);
+                        return false;
+                      }
+                    });
 
-                        return isVideo ? (
-                          <video
-                            key={index}
-                            src={url}
-                            className="post-media"
-                            controls
-                            preload="metadata"
-                            onError={(e) => {
-                              console.error('Video load error:', e);
-                              e.target.style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <img
-                            key={index}
-                            src={url}
-                            alt="Post media"
-                            className="post-media"
-                            onError={(e) => {
-                              console.error('Image load error:', e);
-                              e.target.style.display = 'none';
-                            }}
-                          />
-                        );
-                      }).filter(Boolean)}
-                    </div>
-                  )}
+                    // Only render media gallery if there are valid URLs
+                    if (validUrls.length === 0) {
+                      return null;
+                    }
+
+                    // LinkedIn-style grid layout
+                    const maxDisplayImages = 4;
+                    const displayUrls = validUrls.slice(0, maxDisplayImages);
+                    const remainingCount = validUrls.length - maxDisplayImages;
+
+                    return (
+                      <div className={`media-gallery media-count-${Math.min(validUrls.length, maxDisplayImages)}`}>
+                        {displayUrls.map((url, index) => {
+                          // Allow data URLs to be longer since they contain the actual image data
+                          if (url.length > 100000 && !url.startsWith('data:')) {
+                            console.warn('URL too long, skipping:', url.substring(0, 100) + '...');
+                            return null;
+                          }
+
+                          // Check if it's a video
+                          const isVideo = url.includes('video/') || url.includes('.mp4') || url.includes('.webm') || url.includes('.mov');
+                          const isLastImage = index === maxDisplayImages - 1 && remainingCount > 0;
+
+                          return (
+                            <div key={index} className={`media-item ${isLastImage ? 'has-overlay' : ''}`}>
+                              {isVideo ? (
+                                <video
+                                  src={url}
+                                  className="post-media"
+                                  controls
+                                  preload="metadata"
+                                  onError={(e) => {
+                                    console.error('Video load error:', e);
+                                    e.target.style.display = 'none';
+                                    // Check if fallback already exists
+                                    if (!e.target.parentNode.querySelector('.media-error')) {
+                                      const fallback = document.createElement('div');
+                                      fallback.className = 'media-error';
+                                      fallback.textContent = '📹 Video unavailable';
+                                      e.target.parentNode.appendChild(fallback);
+                                    }
+                                  }}
+                                />
+                              ) : (
+                                <img
+                                  src={url}
+                                  alt="Post media"
+                                  className="post-media"
+                                  loading="lazy"
+                                  onClick={() => openImageModal(validUrls, index)}
+                                  onError={(e) => {
+                                    console.error('Image load error:', e);
+                                    e.target.style.display = 'none';
+                                    // Check if fallback already exists
+                                    if (!e.target.parentNode.querySelector('.media-error')) {
+                                      const fallback = document.createElement('div');
+                                      fallback.className = 'media-error';
+                                      fallback.textContent = '🖼️ Image unavailable';
+                                      e.target.parentNode.appendChild(fallback);
+                                    }
+                                  }}
+                                  onLoad={(e) => {
+                                    // Check if image is too large and compress if needed
+                                    const img = e.target;
+                                    if (img.naturalWidth > 1920 || img.naturalHeight > 1080) {
+                                      img.style.maxWidth = '100%';
+                                      img.style.height = 'auto';
+                                    }
+                                  }}
+                                />
+                              )}
+                              {isLastImage && (
+                                <div
+                                  className="media-overlay"
+                                  onClick={() => openImageModal(validUrls, index)}
+                                >
+                                  <span className="remaining-count">+{remainingCount}</span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }).filter(Boolean)}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <div className="post-actions">
@@ -501,7 +709,11 @@ function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, 
                           onClick={() => handleUnlike(post.post_id)}
                           className="action-btn like-btn liked"
                         >
-                          <span className="btn-icon">❤️</span>
+                          <span className="btn-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M20.84 4.61C19.32 3.04 17.13 3.04 15.61 4.61L12 8.22L8.39 4.61C6.87 3.04 4.68 3.04 3.16 4.61C1.64 6.18 1.64 8.82 3.16 10.39L12 19.23L20.84 10.39C22.36 8.82 22.36 6.18 20.84 4.61Z" />
+                            </svg>
+                          </span>
                           <span className="btn-text">Liked ({post.likes})</span>
                         </button>
                       ) : (
@@ -509,7 +721,11 @@ function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, 
                           onClick={() => handleLike(post.post_id)}
                           className="action-btn like-btn"
                         >
-                          <span className="btn-icon">🤍</span>
+                          <span className="btn-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M20.84 4.61C19.32 3.04 17.13 3.04 15.61 4.61L12 8.22L8.39 4.61C6.87 3.04 4.68 3.04 3.16 4.61C1.64 6.18 1.64 8.82 3.16 10.39L12 19.23L20.84 10.39C22.36 8.82 22.36 6.18 20.84 4.61Z" stroke="currentColor" strokeWidth="2" />
+                            </svg>
+                          </span>
                           <span className="btn-text">Like ({post.likes})</span>
                         </button>
                       )}
@@ -518,7 +734,11 @@ function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, 
                         onClick={() => toggleComments(post.post_id)}
                         className="action-btn"
                       >
-                        <span className="btn-icon">💬</span>
+                        <span className="btn-icon">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" strokeWidth="2" />
+                          </svg>
+                        </span>
                         <span className="btn-text">Comment ({post.comments_count || 0})</span>
                       </button>
 
@@ -526,7 +746,14 @@ function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, 
                         onClick={() => handleShare(post.post_id)}
                         className="action-btn"
                       >
-                        <span className="btn-icon">🔄</span>
+                        <span className="btn-icon">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="18" cy="5" r="3" stroke="currentColor" strokeWidth="2" />
+                            <circle cx="6" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
+                            <circle cx="18" cy="19" r="3" stroke="currentColor" strokeWidth="2" />
+                            <path d="M8.59 13.51L15.42 17.49M15.41 6.51L8.59 10.49" stroke="currentColor" strokeWidth="2" />
+                          </svg>
+                        </span>
                         <span className="btn-text">Share ({post.shares_count || 0})</span>
                       </button>
                     </>
@@ -560,13 +787,23 @@ function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, 
                             className="comment-input"
                           />
                           <button
-                            onClick={() => handleAddComment(post.post_id)}
-                            disabled={!newComment[post.post_id]?.trim()}
-                            className="comment-submit-btn"
+                            type="button"
+                            className="comment-emoji-btn"
+                            onClick={() => {
+                              setEmojiPickerPostId(post.post_id);
+                              setShowEmojiPicker(true);
+                            }}
                           >
-                            Send
+                            😊
                           </button>
                         </div>
+                        <button
+                          onClick={() => handleAddComment(post.post_id)}
+                          disabled={!newComment[post.post_id]?.trim()}
+                          className="comment-submit-btn"
+                        >
+                          Send
+                        </button>
                       </div>
                     )}
 
@@ -586,7 +823,11 @@ function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, 
                             </div>
                             <div className="comment-content">
                               <div className="comment-header">
-                                <strong className="comment-author">
+                                <strong
+                                  className="comment-author clickable-username"
+                                  onClick={() => commentAuthor && handleUserClick(commentAuthor)}
+                                  style={{ cursor: commentAuthor ? 'pointer' : 'default', color: commentAuthor ? '#667eea' : 'inherit' }}
+                                >
                                   {commentAuthor ? commentAuthor.username : 'Unknown User'}
                                 </strong>
                                 <span className="comment-date">
@@ -594,9 +835,7 @@ function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, 
                                 </span>
                               </div>
                               <p className="comment-text">{comment.content}</p>
-                              <div className="comment-actions">
-                                <span className="comment-likes">❤️ {comment.likes}</span>
-                              </div>
+
                             </div>
                           </div>
                         );
@@ -615,6 +854,45 @@ function PostList({ currentUser, isAuthenticated, refreshTrigger, onPostSelect, 
           })}
         </div>
       )}
+
+      {/* Image Modal */}
+      {imageModal.isOpen && (
+        <div className="image-modal-overlay" onClick={closeImageModal}>
+          <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={closeImageModal}>×</button>
+
+            {imageModal.images.length > 1 && (
+              <>
+                <button className="modal-nav modal-prev" onClick={prevImage}>‹</button>
+                <button className="modal-nav modal-next" onClick={nextImage}>›</button>
+              </>
+            )}
+
+            <div className="modal-image-container">
+              <img
+                src={imageModal.images[imageModal.currentIndex]}
+                alt={`Image ${imageModal.currentIndex + 1} of ${imageModal.images.length}`}
+                className="modal-image"
+              />
+            </div>
+
+            {imageModal.images.length > 1 && (
+              <div className="modal-counter">
+                {imageModal.currentIndex + 1} / {imageModal.images.length}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <EmojiPicker
+        isOpen={showEmojiPicker}
+        onEmojiSelect={handleEmojiSelect}
+        onClose={() => {
+          setShowEmojiPicker(false);
+          setEmojiPickerPostId(null);
+        }}
+      />
     </div>
   );
 }

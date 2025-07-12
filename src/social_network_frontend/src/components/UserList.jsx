@@ -7,6 +7,7 @@ function UserList({ onUserSelect, refreshTrigger, currentUser, isAuthenticated, 
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [followingUsers, setFollowingUsers] = useState(new Set());
+  const [userStats, setUserStats] = useState({});
 
   useEffect(() => {
     fetchUsers();
@@ -24,11 +25,15 @@ function UserList({ onUserSelect, refreshTrigger, currentUser, isAuthenticated, 
   }, [refreshTrigger]);
 
   useEffect(() => {
-    if (searchQuery.trim()) {
-      handleSearch();
-    } else {
-      fetchUsers();
-    }
+    const timeoutId = setTimeout(() => {
+      if (searchQuery.trim()) {
+        handleSearch();
+      } else {
+        fetchUsers();
+      }
+    }, 300); // Debounce search by 300ms
+
+    return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
   const fetchUsers = async () => {
@@ -38,11 +43,50 @@ function UserList({ onUserSelect, refreshTrigger, currentUser, isAuthenticated, 
       const actor = backendActor || social_network_backend;
       const result = await actor.get_all_users();
       setUsers(result);
+
+      // Fetch stats for each user
+      await fetchUserStats(result, actor);
     } catch (error) {
       console.error('Error fetching users:', error);
       setError('Error loading users: ' + error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUserStats = async (userList, actor) => {
+    try {
+      const statsPromises = userList.map(async (user) => {
+        const userId = user.user_id;
+
+        const [posts, followers, following] = await Promise.all([
+          actor.get_user_posts(userId),
+          actor.get_followers(userId),
+          actor.get_following(userId)
+        ]);
+
+        return {
+          userId: userId.toString(),
+          postsCount: posts.length,
+          followersCount: followers.length,
+          followingCount: following.length
+        };
+      });
+
+      const statsResults = await Promise.all(statsPromises);
+      const statsMap = {};
+
+      statsResults.forEach(stat => {
+        statsMap[stat.userId] = {
+          posts: stat.postsCount,
+          followers: stat.followersCount,
+          following: stat.followingCount
+        };
+      });
+
+      setUserStats(statsMap);
+    } catch (err) {
+      console.error('❌ UserList: Error fetching user stats:', err);
     }
   };
 
@@ -119,6 +163,11 @@ function UserList({ onUserSelect, refreshTrigger, currentUser, isAuthenticated, 
     }
   };
 
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(Number(timestamp) / 1_000_000); // Convert nanoseconds to milliseconds
+    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  };
+
   if (loading) {
     return <div className="loading">Loading users...</div>;
   }
@@ -146,7 +195,15 @@ function UserList({ onUserSelect, refreshTrigger, currentUser, isAuthenticated, 
     <div className="user-list">
       <div className="user-list-header">
         <div className="header-content">
-          <h2>👥 Discover People</h2>
+          <h2 className="discover-header">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: '0.75rem', color: '#667eea' }}>
+              <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" />
+              <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2" />
+              <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" strokeWidth="2" />
+              <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" strokeWidth="2" />
+            </svg>
+            <span className="discover-text">Discover People</span>
+          </h2>
           <p>Connect with amazing people in our community</p>
         </div>
 
@@ -160,7 +217,10 @@ function UserList({ onUserSelect, refreshTrigger, currentUser, isAuthenticated, 
               className="search-input"
             />
             <button onClick={handleSearch} className="search-btn">
-              🔍
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" />
+                <path d="M21 21L16.65 16.65" stroke="currentColor" strokeWidth="2" />
+              </svg>
             </button>
           </div>
           <p className="users-count">{users.length} users found</p>
@@ -182,17 +242,7 @@ function UserList({ onUserSelect, refreshTrigger, currentUser, isAuthenticated, 
               key={user.user_id.toString()}
               className="user-card"
             >
-              <div className="user-card-header">
-                <div className="user-avatar" onClick={() => handleUserClick(user)}>
-                  {user.profile_pic?.[0] ? (
-                    <img src={user.profile_pic[0]} alt={user.username} />
-                  ) : (
-                    <div className="default-avatar">
-                      {user.username ? user.username.charAt(0).toUpperCase() : '?'}
-                    </div>
-                  )}
-                </div>
-
+              <div className="user-card-cover">
                 {!isCurrentUser && isAuthenticated && (
                   <div className="follow-btn-container">
                     {isFollowing ? (
@@ -212,38 +262,74 @@ function UserList({ onUserSelect, refreshTrigger, currentUser, isAuthenticated, 
                     )}
                   </div>
                 )}
-              </div>
-
-              <div className="user-info" onClick={() => handleUserClick(user)}>
-                <h3>{user.username || 'Unknown User'}</h3>
-                {user.full_name?.[0] && (
-                  <p className="full-name">{user.full_name[0]}</p>
-                )}
-                {user.bio?.[0] && (
-                  <p className="bio">
-                    {user.bio[0].length > 120
-                      ? user.bio[0].substring(0, 120) + '...'
-                      : user.bio[0]
-                    }
-                  </p>
-                )}
-                {user.location?.[0] && (
-                  <p className="location">📍 {user.location[0]}</p>
-                )}
-              </div>
-
-              <div className="user-stats">
-                <div className="stat">
-                  <span className="stat-label">Joined</span>
-                  <span className="stat-value">
-                    {new Date(Number(user.created_at) / 1000000).toLocaleDateString()}
-                  </span>
-                </div>
                 {isCurrentUser && (
-                  <div className="current-user-badge">
+                  <div className="current-user-indicator">
                     You
                   </div>
                 )}
+              </div>
+
+              <div className="user-card-body">
+                <div className="user-avatar-section">
+                  <div className="user-card-avatar" onClick={() => handleUserClick(user)}>
+                    {user.profile_pic?.[0] ? (
+                      <img src={user.profile_pic[0]} alt={user.username} />
+                    ) : (
+                      <div className="default-avatar">
+                        {user.username ? user.username.charAt(0).toUpperCase() : '?'}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="user-basic-info" onClick={() => handleUserClick(user)}>
+                    <h3>{user.username || 'Unknown User'}</h3>
+                    {user.full_name?.[0] && (
+                      <div className="user-name-location">
+                        <p className="full-name">{user.full_name[0]}</p>
+                        {user.location?.[0] && (
+                          <div className="user-location">
+                            <span className="location-icon">📍</span>
+                            <span>{user.location[0]}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="user-details">
+                  {user.bio?.[0] && (
+                    <p className="bio">
+                      {user.bio[0].length > 100
+                        ? user.bio[0].substring(0, 100) + '...'
+                        : user.bio[0]
+                      }
+                    </p>
+                  )}
+                </div>
+
+                <div className="user-stats">
+                  <div className="stats-row">
+                    <div className="stat">
+                      <span className="stat-label">Posts</span>
+                      <span className="stat-value">
+                        {userStats[user.user_id.toString()]?.posts || 0}
+                      </span>
+                    </div>
+                    <div className="stat">
+                      <span className="stat-label">Followers</span>
+                      <span className="stat-value">
+                        {userStats[user.user_id.toString()]?.followers || 0}
+                      </span>
+                    </div>
+                    <div className="stat">
+                      <span className="stat-label">Following</span>
+                      <span className="stat-value">
+                        {userStats[user.user_id.toString()]?.following || 0}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           );

@@ -538,9 +538,47 @@ fn is_caller_admin() -> bool {
 fn admin_delete_user(target_user_id: Principal) -> String {
     match require_admin() {
         Ok(_) => {
+            // First, delete all posts by this user
+            {
+                let mut posts = POSTS.lock().unwrap();
+                for post in posts.values_mut() {
+                    if post.author_id == target_user_id {
+                        post.is_deleted = true;
+                    }
+                }
+            }
+
+            // Delete all comments by this user
+            {
+                let mut comments = COMMENTS.lock().unwrap();
+                for comment in comments.values_mut() {
+                    if comment.author_id == target_user_id {
+                        comment.is_deleted = true;
+                    }
+                }
+            }
+
+            // Remove user from likes
+            {
+                let mut user_likes = USER_LIKES.lock().unwrap();
+                user_likes.remove(&target_user_id);
+            }
+
+            // Remove user from following relationships
+            {
+                let mut user_following = USER_FOLLOWING.lock().unwrap();
+                user_following.remove(&target_user_id);
+
+                // Also remove this user from other users' following lists
+                for following_set in user_following.values_mut() {
+                    following_set.remove(&target_user_id);
+                }
+            }
+
+            // Finally, delete the user
             let mut users = USERS.lock().unwrap();
             if users.remove(&target_user_id).is_some() {
-                format!("User {} deleted successfully by admin", target_user_id)
+                format!("User {} and all their data deleted successfully by admin", target_user_id)
             } else {
                 "User not found".to_string()
             }
@@ -797,6 +835,18 @@ fn admin_get_recent_users(limit: u64) -> Result<Vec<User>, String> {
             // Take only the requested number
             user_list.truncate(limit as usize);
 
+            Ok(user_list)
+        }
+        Err(e) => Err(e),
+    }
+}
+
+#[ic_cdk::query]
+fn admin_get_all_users() -> Result<Vec<User>, String> {
+    match require_admin() {
+        Ok(_) => {
+            let users = USERS.lock().unwrap();
+            let user_list: Vec<User> = users.values().cloned().collect();
             Ok(user_list)
         }
         Err(e) => Err(e),

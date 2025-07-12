@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { social_network_backend } from 'declarations/social_network_backend';
+import EmojiPicker from './EmojiPicker';
 
 function PostForm({ post, onPostCreated, onPostUpdated, onCancel, backendActor }) {
   const [content, setContent] = useState('');
@@ -9,6 +10,7 @@ function PostForm({ post, onPostCreated, onPostUpdated, onCancel, backendActor }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [charCount, setCharCount] = useState(0);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const isEditing = !!post;
   const maxChars = 2000;
@@ -29,49 +31,92 @@ function PostForm({ post, onPostCreated, onPostUpdated, onCancel, backendActor }
     setError('');
   };
 
-  const handleFileUpload = (e) => {
+  const handleEmojiSelect = (emoji) => {
+    const newContent = content + emoji;
+    setContent(newContent);
+    setCharCount(newContent.length);
+  };
+
+  // Image compression function
+  const compressImage = (file, maxWidth = 800, quality = 0.7) => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+
+      img.onload = () => {
+        // Calculate new dimensions
+        let { width, height } = img;
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        // Draw and compress
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(resolve, 'image/jpeg', quality);
+      };
+
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
-    const validFiles = files.filter(file => {
+    setLoading(true);
+
+    const processedFiles = [];
+    const processedUrls = [];
+
+    for (const file of files) {
       const isImage = file.type.startsWith('image/');
       const isVideo = file.type.startsWith('video/');
-      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB limit
+      const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB limit (same as profile pics)
 
       if (!isImage && !isVideo) {
         setError('Only image and video files are allowed');
-        return false;
+        continue;
       }
       if (!isValidSize) {
-        setError('File size must be less than 10MB');
-        return false;
+        setError('File size must be less than 5MB');
+        continue;
       }
-      return true;
-    });
 
-    if (validFiles.length > 0) {
-      setMediaFiles(prev => [...prev, ...validFiles]);
-      setError('');
-
-      // Create preview URLs
-      validFiles.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setMediaUrls(prev => {
-            const newUrls = prev ? prev.split(', ').filter(url => url.trim()) : [];
-            newUrls.push(e.target.result);
-            return newUrls.join(', ');
-          });
-        };
-        reader.readAsDataURL(file);
-      });
+      // Use simple approach like profile images - no compression
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        processedUrls.push(e.target.result);
+      };
+      reader.readAsDataURL(file);
+      processedFiles.push(file);
     }
+
+    if (processedFiles.length > 0) {
+      setMediaFiles(prev => [...prev, ...processedFiles]);
+
+      // Update URLs after a short delay to ensure all readers complete
+      setTimeout(() => {
+        setMediaUrls(prev => {
+          const newUrls = prev ? prev.split('|||').filter(url => url.trim()) : [];
+          newUrls.push(...processedUrls);
+          return newUrls.join('|||');
+        });
+      }, 100);
+
+      setError('');
+    }
+    setLoading(false);
   };
 
   const removeMediaFile = (index) => {
     setMediaFiles(prev => prev.filter((_, i) => i !== index));
     setMediaUrls(prev => {
-      const urls = prev ? prev.split(', ').filter(url => url.trim()) : [];
+      const urls = prev ? prev.split('|||').filter(url => url.trim()) : [];
       urls.splice(index, 1);
-      return urls.join(', ');
+      return urls.join('|||');
     });
   };
 
@@ -106,7 +151,7 @@ function PostForm({ post, onPostCreated, onPostUpdated, onCancel, backendActor }
       } else {
         // Create new post
         const hashtagArray = hashtags.split(',').map(tag => tag.trim()).filter(tag => tag);
-        const mediaArray = mediaUrls.split(',').map(url => url.trim()).filter(url => url);
+        const mediaArray = mediaUrls.split('|||').map(url => url.trim()).filter(url => url);
 
         const actor = backendActor || social_network_backend;
         const result = await actor.create_post(content, hashtagArray, mediaArray);
@@ -144,16 +189,28 @@ function PostForm({ post, onPostCreated, onPostUpdated, onCancel, backendActor }
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="content">Content</label>
-          <textarea
-            id="content"
-            value={content}
-            onChange={handleContentChange}
-            placeholder="What's on your mind? Use @username to mention someone..."
-            rows={6}
-            className="post-textarea"
-            disabled={loading}
-            maxLength={maxChars}
-          />
+          <div className="content-input-wrapper">
+            <textarea
+              id="content"
+              value={content}
+              onChange={handleContentChange}
+              placeholder="What's on your mind? Use @username to mention someone..."
+              rows={6}
+              className="post-textarea"
+              disabled={loading}
+              maxLength={maxChars}
+            />
+            <div className="content-actions">
+              <button
+                type="button"
+                className="emoji-trigger-btn"
+                onClick={() => setShowEmojiPicker(true)}
+                disabled={loading}
+              >
+                😊
+              </button>
+            </div>
+          </div>
           <div className="char-counter">
             <span className={charCount > maxChars * 0.9 ? 'warning' : ''}>
               {charCount}/{maxChars}
@@ -268,6 +325,12 @@ function PostForm({ post, onPostCreated, onPostUpdated, onCancel, backendActor }
           <li>Keep it concise but meaningful</li>
         </ul>
       </div>
+
+      <EmojiPicker
+        isOpen={showEmojiPicker}
+        onEmojiSelect={handleEmojiSelect}
+        onClose={() => setShowEmojiPicker(false)}
+      />
     </div>
   );
 }

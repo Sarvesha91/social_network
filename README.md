@@ -1,61 +1,213 @@
-# `social_network`
+# 🌐 Social Net - Decentralized Social Media Platform
 
-Welcome to your new `social_network` project and to the Internet Computer development community. By default, creating a new project adds this README and some template files to your project directory. You can edit these template files to customize your project and to include your own code to speed up the development cycle.
+[![ICP](https://img.shields.io/badge/Internet%20Computer-Protocol-blue)](https://internetcomputer.org/)
+[![React](https://img.shields.io/badge/React-18.0+-blue)](https://reactjs.org/)
+[![Rust](https://img.shields.io/badge/Rust-Backend-orange)](https://www.rust-lang.org/)
 
-To get started, you might want to explore the project directory structure and the default configuration file. Working with this project in your development environment will not affect any production deployment or identity tokens.
+> A fully decentralized social media platform built on the Internet Computer Protocol (ICP), featuring real-time interactions, multimedia support, and complete user data ownership.
 
-To learn more before you start working with `social_network`, see the following documentation available online:
+## 🚀 Live Demo
 
-- [Quick Start](https://internetcomputer.org/docs/current/developer-docs/setup/deploy-locally)
-- [SDK Developer Tools](https://internetcomputer.org/docs/current/developer-docs/setup/install)
-- [Rust Canister Development Guide](https://internetcomputer.org/docs/current/developer-docs/backend/rust/)
-- [ic-cdk](https://docs.rs/ic-cdk)
-- [ic-cdk-macros](https://docs.rs/ic-cdk-macros)
-- [Candid Introduction](https://internetcomputer.org/docs/current/developer-docs/backend/candid/)
+**[Try Social Net Live →](http://localhost:3000)** *(Replace with your deployed URL)*
 
-If you want to start working on your project right away, you might want to try the following commands:
+![Social Net Landing Page](assets/landing-page.png)
+*Modern, responsive landing page with animated features*
 
+![Social Net Dashboard](assets/dashboard.png)
+*Clean, intuitive user dashboard with real-time updates*
+
+## ✨ Features
+
+### 🔐 **Authentication & Security**
+- **Internet Identity Integration** - Secure, passwordless authentication
+- **Decentralized Identity** - Users own their identity and data
+- **Privacy-First** - No corporate surveillance or data mining
+
+### 👥 **Social Features**
+- **User Profiles** - Customizable profiles with bio, location, and profile pictures
+- **Posts & Content** - Rich text posts with hashtag and mention support
+- **Comments System** - Threaded discussions on posts
+- **Like & Share** - Engage with content through likes and shares
+- **Follow System** - Build your social network by following users
+
+### 🎨 **Modern UI/UX**
+- **Responsive Design** - Works seamlessly on desktop and mobile
+- **Real-time Updates** - Live feed updates and notifications
+- **Emoji Picker** - Express yourself with a comprehensive emoji selector
+- **Media Support** - Upload and share images and videos
+- **Search & Discovery** - Find users and content easily
+
+### 🛡️ **Admin Features**
+- **User Management** - Admin dashboard for platform moderation
+- **Content Moderation** - Tools for maintaining community standards
+- **Analytics** - Platform statistics and user insights
+
+## 🏗️ Architecture
+
+![Architecture Diagram](assets/architecture.png)
+*Decentralized architecture built on Internet Computer Protocol*
+
+### Frontend (React + Vite)
+- **React 18** with modern hooks and context
+- **Vite** for fast development and building
+- **SCSS** for advanced styling with gradients and animations
+- **Internet Identity** for authentication
+
+### Backend (Rust + ICP)
+- **Rust Canister** for high-performance backend logic
+- **Internet Computer** for decentralized hosting
+- **Candid Interface** for type-safe frontend-backend communication
+- **Stable Memory** for persistent data storage
+
+## 🛠️ Tech Stack
+
+| Component | Technology |
+|-----------|------------|
+| **Frontend** | React, Vite, SCSS, JavaScript |
+| **Backend** | Rust, Internet Computer Protocol |
+| **Authentication** | Internet Identity |
+| **Styling** | SCSS with CSS Grid/Flexbox |
+| **State Management** | React Context + Hooks |
+| **Build Tool** | DFX (DFINITY SDK) |
+
+## 📦 Installation & Setup
+
+### Prerequisites
+- [Node.js](https://nodejs.org/) (v16 or higher)
+- [DFX](https://internetcomputer.org/docs/current/developer-docs/setup/install/) (DFINITY SDK)
+- [Rust](https://rustup.rs/) (for backend development)
+
+### 1. Clone the Repository
 ```bash
-cd social_network/
-dfx help
-dfx canister --help
+git clone https://github.com/yourusername/social-net.git
+cd social-net
 ```
 
-## Running the project locally
-
-If you want to test your project locally, you can use the following commands:
-
+### 2. Install Dependencies
 ```bash
-# Starts the replica, running in the background
-dfx start --background
+npm install
+```
 
-# Deploys your canisters to the replica and generates your candid interface
+### 3. Start Local Internet Computer
+```bash
+dfx start --background
+```
+
+### 4. Deploy Canisters
+```bash
 dfx deploy
 ```
 
-Once the job completes, your application will be available at `http://localhost:4943?canisterId={asset_canister_id}`.
-
-If you have made changes to your backend canister, you can generate a new candid interface with
-
-```bash
-npm run generate
-```
-
-at any time. This is recommended before starting the frontend development server, and will be run automatically any time you run `dfx deploy`.
-
-If you are making frontend changes, you can start a development server with
-
+### 5. Start Development Server
 ```bash
 npm start
 ```
 
-Which will start a server at `http://localhost:8080`, proxying API requests to the replica at port 4943.
+The application will be available at `http://localhost:3000`
 
-### Note on frontend environment variables
+## �� Usage
 
-If you are hosting frontend code somewhere without using DFX, you may need to make one of the following adjustments to ensure your project does not fetch the root key in production:
+### For Users
+1. **Sign Up** - Create account using Internet Identity
+2. **Complete Profile** - Add your details, bio, and profile picture
+3. **Explore** - Discover other users and their content
+4. **Post** - Share your thoughts with text, images, or videos
+5. **Engage** - Like, comment, and share posts from your network
 
-- set`DFX_NETWORK` to `ic` if you are using Webpack
-- use your own preferred method to replace `process.env.DFX_NETWORK` in the autogenerated declarations
-  - Setting `canisters -> {asset_canister_id} -> declarations -> env_override to a string` in `dfx.json` will replace `process.env.DFX_NETWORK` with the string in the autogenerated declarations
-- Write your own `createActor` constructor
+### For Developers
+1. **Backend Development** - Modify Rust code in `src/social_network_backend/`
+2. **Frontend Development** - Edit React components in `src/social_network_frontend/`
+3. **Styling** - Update SCSS files for UI customization
+4. **Deploy** - Use `dfx deploy` to update canisters
+
+## 📁 Project Structure
+
+```
+social-net/
+├── src/
+│   ├── social_network_backend/          # Rust backend canister
+│   │   ├── src/lib.rs                   # Main backend logic
+│   │   └── social_network_backend.did   # Candid interface
+│   └── social_network_frontend/         # React frontend
+│       ├── src/
+│       │   ├── components/              # React components
+│       │   ├── index.scss              # Main styles
+│       │   └── main.jsx                # App entry point
+│       └── index.html
+├── dfx.json                            # DFX configuration
+├── package.json                        # Node.js dependencies
+└── README.md                          # This file
+```
+
+## 🌟 Key Components
+
+### Backend Functions
+- **User Management** - Create, update, delete users
+- **Post System** - CRUD operations for posts
+- **Social Features** - Likes, follows, comments
+- **Admin Functions** - Platform moderation tools
+
+### Frontend Components
+- **Authentication** - Internet Identity integration
+- **Feed** - Real-time post feed with infinite scroll
+- **Profile** - User profile management
+- **Discover** - User discovery and search
+- **Admin Dashboard** - Platform administration
+
+## 🔧 Configuration
+
+### Environment Variables
+Create a `.env` file in the root directory:
+```env
+DFX_NETWORK=local
+CANISTER_ID_SOCIAL_NETWORK_BACKEND=your_backend_canister_id
+CANISTER_ID_SOCIAL_NETWORK_FRONTEND=your_frontend_canister_id
+```
+
+### DFX Configuration
+The `dfx.json` file contains canister configurations for both local and IC network deployment.
+
+## 🚀 Deployment
+
+### Local Deployment
+```bash
+dfx deploy --network local
+```
+
+### IC Mainnet Deployment
+```bash
+dfx deploy --network ic --with-cycles 1000000000000
+```
+
+## 🤝 Contributing
+
+We welcome contributions! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [DFINITY Foundation](https://dfinity.org/) for the Internet Computer Protocol
+- [Internet Identity](https://identity.ic0.app/) for secure authentication
+- The ICP developer community for inspiration and support
+
+## 📞 Contact
+
+- **Developer**: [Sarvesha Sinha]
+- **Email**: your.email@example.com
+- **Twitter**: [@yourusername](https://twitter.com/yourusername)
+- **LinkedIn**: [Your LinkedIn](https://linkedin.com/in/yourusername)
+
+---
+
+<div align="center">
+  <strong>Built on the Internet Computer</strong>
+</div>

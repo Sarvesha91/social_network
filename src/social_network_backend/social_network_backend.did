@@ -117,6 +117,7 @@ service : {
     "admin_get_stats": () -> (variant { Ok: AdminStats; Err: text }) query;
     "admin_get_post_stats": () -> (variant { Ok: PostStats; Err: text }) query;
     "admin_get_all_users_detailed": () -> (variant { Ok: vec User; Err: text }) query;
+    "admin_get_all_users": () -> (variant { Ok: vec User; Err: text }) query;
     "admin_search_users": (text) -> (variant { Ok: vec User; Err: text }) query;
     "admin_get_recent_users": (nat64) -> (variant { Ok: vec User; Err: text }) query;
     "admin_create_user_with_principal": (principal, text, opt text, opt text, opt text, opt text, opt text, opt text) -> (text);
