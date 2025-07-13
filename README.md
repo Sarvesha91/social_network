@@ -33,6 +33,12 @@
 
 *Interactive comment system showing threaded discussions under posts with emoji support, user avatars, and real-time engagement features.*
 
+### Profile editing
+![Edit Profile Section](assets/edit-profile.png)
+*Profile editing interface allowing users to update their personal information, bio, profile picture, and other account details with a clean, user-friendly form.*
+
+
+
 
 ##  Features
 
