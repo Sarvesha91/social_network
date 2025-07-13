@@ -37,7 +37,9 @@
 ![Edit Profile Section](assets/edit-profile.png)
 *Profile editing interface allowing users to update their personal information, bio, profile picture, and other account details with a clean, user-friendly form.*
 
-
+### Image Viewer Modal
+![View Images From Posts](assets/image-view-from-posts.png)
+*Media viewer modal displaying full-size images from posts with navigation controls, demonstrating the platform's media handling capabilities.*
 
 
 ##  Features
