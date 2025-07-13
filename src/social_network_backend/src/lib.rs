@@ -566,11 +566,11 @@ fn admin_delete_user(target_user_id: Principal) -> String {
 
             // Remove user from following relationships
             {
-                let mut user_following = USER_FOLLOWING.lock().unwrap();
-                user_following.remove(&target_user_id);
+                let mut follows = FOLLOWS.lock().unwrap();
+                follows.remove(&target_user_id);
 
                 // Also remove this user from other users' following lists
-                for following_set in user_following.values_mut() {
+                for following_set in follows.values_mut() {
                     following_set.remove(&target_user_id);
                 }
             }
@@ -747,6 +747,49 @@ fn admin_get_all_posts() -> Result<Vec<Post>, String> {
             post_list.sort_by(|a, b| b.created_at.cmp(&a.created_at));
 
             Ok(post_list)
+        }
+        Err(e) => Err(e),
+    }
+}
+
+#[ic_cdk::query]
+fn admin_get_post_ids() -> Result<Vec<u64>, String> {
+    match require_admin() {
+        Ok(_) => {
+            let posts = POSTS.lock().unwrap();
+            let post_ids: Vec<u64> = posts.keys().cloned().collect();
+            Ok(post_ids)
+        }
+        Err(e) => Err(e),
+    }
+}
+
+#[ic_cdk::update]
+fn admin_clear_all_posts() -> Result<String, String> {
+    match require_admin() {
+        Ok(_) => {
+            let mut posts = POSTS.lock().unwrap();
+            let count = posts.len();
+            posts.clear();
+            Ok(format!("Cleared {} posts successfully", count))
+        }
+        Err(e) => Err(e),
+    }
+}
+
+#[ic_cdk::update]
+fn admin_clear_profile_pics() -> Result<String, String> {
+    match require_admin() {
+        Ok(_) => {
+            let mut users = USERS.lock().unwrap();
+            let mut count = 0;
+            for user in users.values_mut() {
+                if user.profile_pic.is_some() {
+                    user.profile_pic = None;
+                    count += 1;
+                }
+            }
+            Ok(format!("Cleared {} profile pictures successfully", count))
         }
         Err(e) => Err(e),
     }
