@@ -1,4 +1,4 @@
-# 🌐 Social Net - Decentralized Social Media Platform
+# Social Net - Decentralized Social Media Platform
 
 [![ICP](https://img.shields.io/badge/Internet%20Computer-Protocol-blue)](https://internetcomputer.org/)
 [![React](https://img.shields.io/badge/React-18.0+-blue)](https://reactjs.org/)
@@ -6,9 +6,7 @@
 
 > A fully decentralized social media platform built on the Internet Computer Protocol (ICP), featuring real-time interactions, multimedia support, and complete user data ownership.
 
-## 🚀 Live Demo
-
-**[Try Social Net Live →](http://localhost:3000)** *(Replace with your deployed URL)*
+##  Project Preview
 
 ![Social Net Landing Page](assets/landing-page.png)
 *Modern, responsive landing page with animated features*
@@ -16,33 +14,33 @@
 ![Social Net Dashboard](assets/dashboard.png)
 *Clean, intuitive user dashboard with real-time updates*
 
-## ✨ Features
+##  Features
 
-### 🔐 **Authentication & Security**
+###  **Authentication & Security**
 - **Internet Identity Integration** - Secure, passwordless authentication
 - **Decentralized Identity** - Users own their identity and data
 - **Privacy-First** - No corporate surveillance or data mining
 
-### 👥 **Social Features**
+###  **Social Features**
 - **User Profiles** - Customizable profiles with bio, location, and profile pictures
 - **Posts & Content** - Rich text posts with hashtag and mention support
 - **Comments System** - Threaded discussions on posts
 - **Like & Share** - Engage with content through likes and shares
 - **Follow System** - Build your social network by following users
 
-### 🎨 **Modern UI/UX**
+###  **Modern UI/UX**
 - **Responsive Design** - Works seamlessly on desktop and mobile
 - **Real-time Updates** - Live feed updates and notifications
 - **Emoji Picker** - Express yourself with a comprehensive emoji selector
 - **Media Support** - Upload and share images and videos
 - **Search & Discovery** - Find users and content easily
 
-### 🛡️ **Admin Features**
+###  **Admin Features**
 - **User Management** - Admin dashboard for platform moderation
 - **Content Moderation** - Tools for maintaining community standards
 - **Analytics** - Platform statistics and user insights
 
-## 🏗️ Architecture
+##  Architecture
 
 ![Architecture Diagram](assets/architecture.png)
 *Decentralized architecture built on Internet Computer Protocol*
@@ -59,7 +57,7 @@
 - **Candid Interface** for type-safe frontend-backend communication
 - **Stable Memory** for persistent data storage
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Component | Technology |
 |-----------|------------|
@@ -70,7 +68,7 @@
 | **State Management** | React Context + Hooks |
 | **Build Tool** | DFX (DFINITY SDK) |
 
-## 📦 Installation & Setup
+## Installation & Setup
 
 ### Prerequisites
 - [Node.js](https://nodejs.org/) (v16 or higher)
@@ -105,7 +103,7 @@ npm start
 
 The application will be available at `http://localhost:3000`
 
-## �� Usage
+## Usage
 
 ### For Users
 1. **Sign Up** - Create account using Internet Identity
@@ -120,7 +118,7 @@ The application will be available at `http://localhost:3000`
 3. **Styling** - Update SCSS files for UI customization
 4. **Deploy** - Use `dfx deploy` to update canisters
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 social-net/
@@ -131,15 +129,16 @@ social-net/
 │   └── social_network_frontend/         # React frontend
 │       ├── src/
 │       │   ├── components/              # React components
-│       │   ├── index.scss              # Main styles
-│       │   └── main.jsx                # App entry point
+│       │   ├── index.scss               # Main styles
+│       │   ├── main.jsx                 # App entry point
+|       │   └── App.jsx                     
 │       └── index.html
 ├── dfx.json                            # DFX configuration
 ├── package.json                        # Node.js dependencies
 └── README.md                          # This file
 ```
 
-## 🌟 Key Components
+## Key Components
 
 ### Backend Functions
 - **User Management** - Create, update, delete users
@@ -154,7 +153,7 @@ social-net/
 - **Discover** - User discovery and search
 - **Admin Dashboard** - Platform administration
 
-## 🔧 Configuration
+##  Configuration
 
 ### Environment Variables
 Create a `.env` file in the root directory:
@@ -179,7 +178,7 @@ dfx deploy --network local
 dfx deploy --network ic --with-cycles 1000000000000
 ```
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Please follow these steps:
 
@@ -189,21 +188,17 @@ We welcome contributions! Please follow these steps:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - [DFINITY Foundation](https://dfinity.org/) for the Internet Computer Protocol
 - [Internet Identity](https://identity.ic0.app/) for secure authentication
 - The ICP developer community for inspiration and support
 
-## 📞 Contact
+##  Contact
 
-- **Developer**: [Sarvesha Sinha]
-- **Email**: your.email@example.com
-- **Twitter**: [@yourusername](https://twitter.com/yourusername)
+- **Developer**: Sarvesha Sinha
+- **Email**: sarveshasinha@gmail.com
 - **LinkedIn**: [Your LinkedIn](https://linkedin.com/in/yourusername)
 
 ---
