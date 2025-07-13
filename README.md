@@ -41,6 +41,10 @@
 ![View Images From Posts](assets/image-view-from-posts.png)
 *Media viewer modal displaying full-size images from posts with navigation controls, demonstrating the platform's media handling capabilities.*
 
+### View Other Profiles
+![Navigate To Profiles From Posts or Discover Section](assets/Viewing-different-profiles.png)
+*External user profile view showing how users can browse other members' profiles, view their posts, and interact through follow/unfollow actions while maintaining navigation context.*
+
 
 ##  Features
 
