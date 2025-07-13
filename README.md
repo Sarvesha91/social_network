@@ -20,13 +20,6 @@
 ![Profile Section](assets/Profile-Section.png)
 *User profile management interface showing profile details, edit capabilities, and follower/following counts.*
 
-[Continue with other images...]
-
-![Social Net Landing Page](assets/Landing-Page.png)
-*Modern, responsive landing page with animated features*
-
-![Social Net Dashboard](assets/dashboard.png)
-*Clean, intuitive user dashboard with real-time updates*
 
 ##  Features
 
