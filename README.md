@@ -8,7 +8,7 @@
 
 ##  Project Preview
 
-![Social Net Landing Page](assets/landing-page.png)
+![Social Net Landing Page](assets/Landing-Page.png)
 *Modern, responsive landing page with animated features*
 
 ![Social Net Dashboard](assets/dashboard.png)
