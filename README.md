@@ -235,7 +235,7 @@ We welcome contributions! Please follow these steps:
 
 - **Developer**: Sarvesha Sinha
 - **Email**: sarveshasinha@gmail.com
-- **LinkedIn**: [Your LinkedIn](www.linkedin.com/in/sarvesha-sinha-a78b52251)
+- **LinkedIn**: [Your LinkedIn](https://www.linkedin.com/in/sarvesha-sinha-a78b52251/)
 
 ---
 
