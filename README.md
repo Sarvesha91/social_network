@@ -29,7 +29,9 @@
 *User discovery page displaying all platform users with their profile information, follow/unfollow buttons, and user statistics.*
 
 ### Comment on Posts
+<div align="center">
 ![Comment Section](assets/comment-section.png)
+</div>
 
 *Interactive comment system showing threaded discussions under posts with emoji support, user avatars, and real-time engagement features.*
 
