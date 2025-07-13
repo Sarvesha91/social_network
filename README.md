@@ -8,6 +8,20 @@
 
 ##  Project Preview
 
+### Landing Page
+![Landing Page](assets/Landing-Page.png)
+*The main landing page featuring the Social Net branding with animated feature highlights, login/signup options, and modern gradient design.*
+
+### Main Feed
+![Main Feed](assets/Main-Feed.png)
+*The primary feed interface displaying posts from all users with like, comment, and share functionality.*
+
+### Profile Management
+![Profile Section](assets/Profile-Section.png)
+*User profile management interface showing profile details, edit capabilities, and follower/following counts.*
+
+[Continue with other images...]
+
 ![Social Net Landing Page](assets/Landing-Page.png)
 *Modern, responsive landing page with animated features*
 
