@@ -129,8 +129,9 @@ social-net/
 │   └── social_network_frontend/         # React frontend
 │       ├── src/
 │       │   ├── components/              # React components
-│       │   ├── index.scss              # Main styles
-│       │   └── main.jsx                # App entry point
+│       │   ├── index.scss               # Main styles
+│       │   ├── main.jsx                 # App entry point
+|       │   └── App.jsx                     
 │       └── index.html
 ├── dfx.json                            # DFX configuration
 ├── package.json                        # Node.js dependencies
