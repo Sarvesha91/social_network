@@ -30,6 +30,7 @@
 
 ### Comment on Posts
 ![Comment Section](assets/comment-section.png)
+
 *Interactive comment system showing threaded discussions under posts with emoji support, user avatars, and real-time engagement features.*
 
 
