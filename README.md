@@ -20,6 +20,11 @@
 ![Profile Section](assets/Profile-Section.png)
 *User profile management interface showing profile details, edit capabilities, and follower/following counts.*
 
+### Post Creation
+![Create Post Section](assets/Create-Section.png)
+*Post creation interface with rich text editor, hashtag support, media upload functionality, and emoji picker*
+
+
 ##  Features
 
 ###  **Authentication & Security**
