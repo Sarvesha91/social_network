@@ -46,7 +46,7 @@
 *External user profile view showing how users can browse other members' profiles, view their posts, and interact through follow/unfollow actions while maintaining navigation context.*
 
 ### Find What's Trending
-![Trending Section](assets/trending section.png)
+![Trending Section](assets/trending-section.png)
 *Trending content section featuring popular posts, hashtags, and real-time news feed integration, showcasing the platform's content discovery and engagement features.*
 
 
