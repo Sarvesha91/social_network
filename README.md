@@ -8,6 +8,10 @@
 
 ##  Project Preview
 
+###  Demo  
+[![Watch Demo on Google Drive](assets/video-thumbnail.png)](https://drive.google.com/file/d/1E32MYvdkx6rlQtMyZF7ngvYezHDFZkr_/view?usp=sharing)  
+*Click the image to watch the demo (opens in Drive).*  
+
 ### Landing Page
 ![Landing Page](assets/Landing-Page.png)
 *The main landing page featuring the Social Net branding with animated feature highlights, login/signup options, and modern gradient design.*
