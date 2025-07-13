@@ -22,7 +22,11 @@
 
 ### Post Creation
 ![Create Post Section](assets/Create-Section.png)
-*Post creation interface with rich text editor, hashtag support, media upload functionality, and emoji picker*
+*Post creation interface with rich text editor, hashtag support, media upload functionality, and emoji picker.*
+
+### View All Users
+![Discover Section](assets/Discover-Section.png)
+*User discovery page displaying all platform users with their profile information, follow/unfollow buttons, and user statistics.*
 
 
 ##  Features
