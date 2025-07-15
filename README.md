@@ -1,4 +1,3 @@
-![Logo](assets/logo-1.png)
 
 # Social Net - Decentralized Social Media Platform
 
