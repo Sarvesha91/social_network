@@ -1,3 +1,5 @@
+![Logo](assets/logo.png)
+
 # Social Net - Decentralized Social Media Platform
 
 [![ICP](https://img.shields.io/badge/Internet%20Computer-Protocol-blue)](https://internetcomputer.org/)
